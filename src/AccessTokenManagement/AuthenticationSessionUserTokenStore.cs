@@ -18,7 +18,7 @@ namespace IdentityModel.AspNetCore.AccessTokenManagement
     public class AuthenticationSessionUserTokenStore : IUserTokenStore
     {
         private const string TokenPrefix = ".Token.";
-            
+
         private readonly IHttpContextAccessor _contextAccessor;
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace IdentityModel.AspNetCore.AccessTokenManagement
             {
                 expiresName += $"::{parameters.Resource}";
             }
-            
+
             result.Properties.Items[$".Token.{tokenName}"] = accessToken;
             result.Properties.Items[$".Token.{expiresName}"] = expiration.ToString("o", CultureInfo.InvariantCulture);
 
@@ -116,7 +116,9 @@ namespace IdentityModel.AspNetCore.AccessTokenManagement
                 result.Properties.UpdateTokenValue(OpenIdConnectParameterNames.RefreshToken, refreshToken);
             }
 
-            await _contextAccessor.HttpContext.SignInAsync(parameters.SignInScheme, result.Principal, result.Properties);
+            // can not work in blazor server project. better way to signin?
+            // ref https://github.com/IdentityModel/IdentityModel.AspNetCore/issues/186
+            // await _contextAccessor.HttpContext.SignInAsync(parameters.SignInScheme, result.Principal, result.Properties);
         }
 
         /// <inheritdoc/>
