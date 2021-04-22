@@ -1,6 +1,7 @@
 // Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
+using System;
 using System.Threading;
 using IdentityModel.AspNetCore.AccessTokenManagement;
 using Microsoft.AspNetCore.Http;
@@ -23,9 +24,21 @@ namespace Microsoft.AspNetCore.Authentication
         /// <returns></returns>
         public static async Task<string> GetUserAccessTokenAsync(this HttpContext httpContext, UserAccessTokenParameters parameters = null, CancellationToken cancellationToken = default)
         {
-            var service = httpContext.RequestServices.GetRequiredService<IUserAccessTokenManagementService>();
+            // todo convert null exception to TaskCanceledException for blazor.
+            if (httpContext == null)
+            {
+                throw new TaskCanceledException();
+            }
 
-            return await service.GetUserAccessTokenAsync(httpContext.User, parameters, cancellationToken);
+            try
+            {
+                var service = httpContext.RequestServices.GetRequiredService<IUserAccessTokenManagementService>();
+                return await service.GetUserAccessTokenAsync(httpContext.User, parameters, cancellationToken);
+            }
+            catch (NullReferenceException)
+            {
+                throw new TaskCanceledException();
+            }
         }
 
         /// <summary>
@@ -37,8 +50,8 @@ namespace Microsoft.AspNetCore.Authentication
         /// <param name="cancellationToken">A cancellation token to cancel operation.</param>
         /// <returns></returns>
         public static async Task<string> GetClientAccessTokenAsync(
-            this HttpContext httpContext, 
-            string clientName = AccessTokenManagementDefaults.DefaultTokenClientName, 
+            this HttpContext httpContext,
+            string clientName = AccessTokenManagementDefaults.DefaultTokenClientName,
             ClientAccessTokenParameters parameters = null,
             CancellationToken cancellationToken = default)
         {
@@ -55,8 +68,8 @@ namespace Microsoft.AspNetCore.Authentication
         /// <param name="cancellationToken">A cancellation token to cancel operation.</param>
         /// <returns></returns>
         public static async Task RevokeUserRefreshTokenAsync(
-            this HttpContext httpContext, 
-            UserAccessTokenParameters parameters = null, 
+            this HttpContext httpContext,
+            UserAccessTokenParameters parameters = null,
             CancellationToken cancellationToken = default)
         {
             var service = httpContext.RequestServices.GetRequiredService<IUserAccessTokenManagementService>();
